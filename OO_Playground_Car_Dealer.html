@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Car Dealer OOP Playground</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f8;
+      text-align: center;
+    }
+
+    button {
+      margin: 4px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #2e86de;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1b4f72;
+    }
+
+    #stats {
+      margin: 10px;
+      font-weight: bold;
+    }
+
+    #lot {
+      margin-top: 20px;
+    }
+
+    .car {
+      display: inline-block;
+      width: 260px;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
+    }
+
+    .status {
+      font-size: 0.9em;
+      margin-top: 5px;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Car Dealer OOP Playground</h2>
+
+<button onclick="createCar()">Add New Car to System</button>
+
+<div id="stats">
+  Cars in System: <span id="systemCount">0</span> |
+  Inventory Available: <span id="inventoryCount">0</span>
+</div>
+
+<div id="lot"></div>
+
+<script>
+
+class Car {
+  #saleDate = null;
+  #isSold = false;
+  #isPurchased = false;
+
+  constructor(regNo, yearMake, make, model, driveType) {
+    this.regNo = regNo;
+    this.yearMake = yearMake;
+    this.make = make;
+    this.model = model;
+    this.driveType = driveType;
+
+    this.purchaseDate = null;
+    this.purchasePrice = null;
+    this.salePrice = null;
+  }
+
+  buyCar() {
+    if (this.#isPurchased) return false;
+
+    this.purchaseDate = new Date().toLocaleDateString();
+    this.purchasePrice = "£" + (20000 + Math.floor(Math.random()*20000));
+    this.#isPurchased = true;
+    return true;
+  }
+
+  sellCar() {
+    if (!this.#isPurchased || this.#isSold) return false;
+
+    this.#saleDate = new Date().toLocaleDateString();
+    this.salePrice = "£" + (25000 + Math.floor(Math.random()*20000));
+    this.#isSold = true;
+    return true;
+  }
+
+  isPurchased() { return this.#isPurchased; }
+  isSold() { return this.#isSold; }
+  getSaleDate() { return this.#saleDate; }
+}
+
+const cars = [];          // all cars ever created
+let inventoryCount = 0;   // purchased but not sold
+
+function updateStats() {
+  document.getElementById("systemCount").innerText = cars.length;
+  document.getElementById("inventoryCount").innerText = inventoryCount;
+}
+
+function randomCarData() {
+  const makes = ["Toyota", "BMW", "Ford", "Tesla"];
+  const models = ["Sedan", "SUV", "Hatch", "Truck"];
+  const driveTypes = ["FWD", "RWD", "AWD"];
+
+  return {
+    regNo: "REG" + Math.floor(Math.random()*10000),
+    yearMake: 2018 + Math.floor(Math.random()*7),
+    make: makes[Math.floor(Math.random()*makes.length)],
+    model: models[Math.floor(Math.random()*models.length)],
+    driveType: driveTypes[Math.floor(Math.random()*driveTypes.length)]
+  };
+}
+
+function createCar() {
+  const data = randomCarData();
+  const car = new Car(
+    data.regNo,
+    data.yearMake,
+    data.make,
+    data.model,
+    data.driveType
+  );
+
+  cars.push(car);
+  renderCar(car);
+  updateStats();
+}
+
+function renderCar(car) {
+
+  const div = document.createElement("div");
+  div.className = "car";
+
+  const info = document.createElement("div");
+  info.innerHTML = `
+    <strong>${car.make} ${car.model}</strong><br>
+    Reg: ${car.regNo}<br>
+    Year: ${car.yearMake}<br>
+    Drive: ${car.driveType}
+  `;
+
+  const status = document.createElement("div");
+  status.className = "status";
+  status.innerHTML = "Not purchased yet.";
+
+  const buyBtn = document.createElement("button");
+  buyBtn.innerText = "Buy";
+  buyBtn.onclick = () => {
+
+    if (car.buyCar()) {
+      inventoryCount++;
+      div.style.background = "#d5f5e3"; // green
+      status.innerHTML = `
+        Purchased: ${car.purchaseDate}<br>
+        Purchase Price: ${car.purchasePrice}
+      `;
+      updateStats();
+    } else {
+      alert("Car already purchased.");
+    }
+  };
+
+  const sellBtn = document.createElement("button");
+  sellBtn.innerText = "Sell";
+  sellBtn.onclick = () => {
+
+    if (car.sellCar()) {
+      inventoryCount--;
+      div.style.background = "#ffe5b4"; // amber
+      status.innerHTML += `
+        <br>Sold: ${car.getSaleDate()}<br>
+        Sale Price: ${car.salePrice}
+      `;
+      updateStats();
+    } else {
+      alert("Car must be purchased first, or has already been sold.");
+    }
+  };
+
+  div.appendChild(info);
+  div.appendChild(status);
+  div.appendChild(buyBtn);
+  div.appendChild(sellBtn);
+
+  document.getElementById("lot").appendChild(div);
+}
+
+updateStats();
+
+</script>
+
+</body>
+</html>
